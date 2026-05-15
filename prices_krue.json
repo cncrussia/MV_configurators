@@ -1,0 +1,26 @@
+{
+  "configs": {
+    "CCVC": { "C": 3, "V": 1, "baseTank": 25536, "assembly": 308540, "margin": 1.56 },
+    "CVC":  { "C": 2, "V": 1, "baseTank": 19761.28, "assembly": 275440, "margin": 1.62 }
+  },
+  "drive": {
+    "C_no": 590, "C_yes": 1440,
+    "V_no": 1850, "V_yes": 2012
+  },
+  "indic": { "C": 31.14, "V": 21.37 },
+  "utkz": 96.46,
+  "hum": 95.24,
+  "tt": 293.04,
+  "adapt": 317.52,
+  "opn": 488.16,
+  "rza": {
+    "NR-310": 380,
+    "NR-321": 1300
+  },
+  "rza_rus": {
+    "BEMP": 80000,
+    "Lutik": 58000,
+    "Altey": 143750,
+    "BMRZ": 166000
+  }
+}
