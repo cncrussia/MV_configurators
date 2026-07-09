@@ -18,7 +18,7 @@
         .tab.active { background: #ffffff; color: #d32f2f; border-bottom: 2px solid white; box-shadow: 0 -2px 6px rgba(0,0,0,0.05); }
         .tab:not(.active):hover { background: #d5d5d5; }
         .container { flex: 1; display: flex; justify-content: center; align-items: flex-start; padding: 0 20px 30px; }
-        .configurator { background: #fff; width: 100%; max-width: 820px; border-radius: 0 0 6px 6px; box-shadow: 0 2px 16px rgba(0,0,0,0.08); overflow: hidden; border: 1px solid #e0e0e0; border-top: none; display: none; }
+        .configurator { background: #fff; width: 100%; max-width: 960px; border-radius: 0 0 6px 6px; box-shadow: 0 2px 16px rgba(0,0,0,0.08); overflow: hidden; border: 1px solid #e0e0e0; border-top: none; display: none; }
         .configurator.active { display: block; }
         .configurator-header { background: #fff; color: #222; padding: 24px 30px 20px; font-size: 1.6rem; font-weight: 600; display: flex; align-items: center; gap: 12px; border-bottom: 3px solid #d32f2f; }
         .config-form { padding: 25px 30px 5px; }
@@ -27,7 +27,7 @@
         .row label { font-weight: 500; color: #444; width: 240px; font-size: 0.95rem; }
         .field { display: flex; flex-direction: column; gap: 0.4rem; }
         .field label { font-weight: 500; color: #444; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.3px; min-height: 40px; }
-        select, input[type="number"] { font-size: 0.95rem; padding: 10px 14px; border: 1px solid #d0d0d0; border-radius: 4px; background: #fff; color: #333; outline: none; transition: 0.2s; min-width: 200px; }
+        select, input[type="number"] { font-size: 0.95rem; padding: 9px 14px; border: 1px solid #d0d0d0; border-radius: 4px; background: #fff; color: #333; outline: none; transition: 0.2s; min-width: 200px; flex: 1; }
         select:focus, input:focus { border-color: #d32f2f; box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.08); }
         .checkbox-label { display: flex; align-items: center; cursor: pointer; font-weight: 400; }
         .checkbox-label span { margin-left: 4px; color: #444; }
@@ -38,6 +38,7 @@
         .nds-note { font-size: 0.85rem; color: #888; margin-bottom: 10px; }
         .model-badge { font-family: 'Segoe UI', 'Arial', sans-serif; font-size: 1.1rem; background: #eef2ff; padding: 0.4rem 1.2rem; border-radius: 40px; color: #1e40af; font-weight: 500; display: inline-block; margin-bottom: 12px; }
         .price-tag { font-size: 2.6rem; font-weight: 700; color: #d32f2f; margin: 8px 0; line-height: 1.2; }
+        .price-tag.secondary { font-size: 2.2rem; color: #1e4620; margin-top: 5px; }
         .price-note { font-size: 0.9rem; color: #999; margin-bottom: 15px; }
         .quantity-row { display: flex; align-items: center; justify-content: center; gap: 1rem; flex-wrap: wrap; margin: 1.2rem 0 0.8rem; }
         .quantity-row label { font-weight: 500; }
@@ -47,6 +48,7 @@
         .footer { background: #fff; color: #999; text-align: center; padding: 16px 20px; font-size: 0.82rem; border-top: 1px solid #e0e0e0; margin-top: auto; }
         .footer a { color: #d32f2f; text-decoration: none; font-weight: 500; }
         .hidden { display: none; }
+        #loadError { color: #b45309; margin: 10px 0; }
         @media (max-width: 640px) {
             .header { flex-direction: column; text-align: center; gap: 10px; padding: 15px 20px; }
             .header-contact { text-align: center; }
@@ -77,7 +79,7 @@
     </div>
 
     <div class="container">
-        <!-- Панель трансформаторов -->
+        <!-- ========== ПАНЕЛЬ ТРАНСФОРМАТОРОВ ========== -->
         <div id="panelTransformer" class="configurator active">
             <div class="configurator-header">Конфигуратор стоимости сухих трансформаторов</div>
             <div class="config-form">
@@ -125,13 +127,14 @@
             <div class="common-specs">
                 <strong>Общие характеристики для всех трансформаторов:</strong><br>
                 • Частота: <strong>50 Гц</strong><br>
-                • Система охлаждения: <strong>ANAF</strong> (для AN — естественное)<br>
+                • Система охлаждения: <strong id="coolingDesc">принудительное (ANAF)</strong><br>
                 • Класс нагревостойкости изоляции: <strong>F</strong> для SCB10, <strong>H</strong> для SGB10<br>
                 • Материал обмоток: <strong>алюминий (Al/Al)</strong><br>
                 • В комплекте: поворотные катки (колёса), датчики температуры PT100 с контроллером BWDK5700<br>
                 • Вторичное напряжение: <strong>0.4 кВ</strong> (другие классы — цена по запросу)
             </div>
             <div class="result">
+                <div id="loadError" class="hidden"></div>
                 <div class="result-title">Итоговая стоимость</div>
                 <div class="nds-note">(Цена указана по тарифу с НДС)</div>
                 <div class="price-tag" id="unitPriceTransformer">0</div>
@@ -141,14 +144,70 @@
             </div>
         </div>
 
-        <!-- Панель вакуумных выключателей (без изменений) -->
+        <!-- ========== ПАНЕЛЬ ВАКУУМНЫХ ВЫКЛЮЧАТЕЛЕЙ ========== -->
         <div id="panelVacuum" class="configurator">
-            <!-- Содержимое из предыдущей полной версии -->
+            <div class="configurator-header">Конфигуратор стоимости вакуумных выключателей</div>
+            <div class="config-form">
+                <div class="filter-grid">
+                    <div class="field"><label>Изоляция</label><select id="insulationVacuum"><option value="сборная">Сборная (VS1-12)</option><option value="литая">Литая (VS1-12P)</option></select></div>
+                    <div class="field"><label>Тип установки</label><select id="typeVacuum"><option value="FT">Стационарный (FT)</option><option value="HT">Выкатной (HT)</option></select></div>
+                    <div class="field"><label>Номинальный ток (А)</label><select id="currentVacuum"></select></div>
+                    <div class="field"><label>Отключающая способность (кА)</label><select id="breakingVacuum"></select></div>
+                    <div class="field"><label>Межфазное расстояние (мм)</label><select id="distanceVacuum"></select></div>
+                </div>
+                <div class="common-specs"><strong>Общие характеристики серий VS1-12 / VS1-12P:</strong><br>- Номинальное напряжение: <strong>10 кВ</strong> (класс напряжения 12 кВ)<br>- Тип привода: <strong>пружинно-моторный</strong></div>
+            </div>
+            <div class="result">
+                <div class="result-title">Наименование модели</div><div class="model-badge" id="modelNameVacuum">—</div>
+                <div class="result-title" style="margin-top:12px;">Итоговая стоимость</div><div class="nds-note">(Цена указана по тарифу с НДС)</div>
+                <div class="price-tag" id="unitPriceVacuum">0</div><div class="price-note">руб. за шт.</div>
+                <div class="quantity-row"><label>Количество:</label><input type="number" id="quantityVacuum" min="1" value="1" step="1" class="qty-input" inputmode="numeric" pattern="[0-9]*"><span style="font-weight:600;">Общая стоимость:</span><span class="total-price" id="totalAmountVacuum">0</span></div>
+                <div class="breakdown" id="warningMsgVacuum"></div>
+            </div>
         </div>
 
-        <!-- Панель КРУЭ (без изменений) -->
+        <!-- ========== ПАНЕЛЬ КРУЭ ========== -->
         <div id="panelKRUE" class="configurator">
-            <!-- Содержимое из предыдущей полной версии -->
+            <div class="configurator-header">Конфигуратор стоимости КРУЭ (локальная сборка)</div>
+            <div class="config-form">
+                <div class="row"><label>Конфигурация (функции C/V/F):</label><select id="configSelect"></select></div>
+                <div class="row"><label>Расширение:</label><select id="expansion"><option value="none">Нет</option><option value="left">Левое</option><option value="right">Правое</option><option value="both">Двустороннее</option></select></div>
+                <div id="blockSettings"><div class="section-title">Приводы функций</div><div id="drivesContainer"></div></div>
+                <div id="testOutletRow" class="row hidden"><label>Отсек испытания кабеля (функции C):</label><input type="number" class="qty-input" id="testOutletQty" min="0" value="0" step="1"> шт.</div>
+                <div class="section-title">Дополнительные компоненты</div>
+                <div class="row"><label>Индикаторы напряжения DXN-Q:</label><input type="number" class="qty-input" id="indicQ" min="0" value="0" step="1"> шт.</div>
+                <div class="row"><label>Манометр QYB-SF6:</label><select id="manometer"><option value="2NO" selected>С аварийным сигналом</option><option value="basic">Без аварийного сигнала</option><option value="none">Нет</option></select></div>
+                <div class="row"><label>УТКЗ EKL-4:</label><input type="number" class="qty-input" id="utkzQty" min="0" value="0" step="1"> шт.</div>
+                <div class="row"><label>Комплект контроллер темп./влаж. + нагреватель:</label><input type="number" class="qty-input" id="controllerHeaterQty" min="0" value="0" step="1"> шт. (WSD + JRD-G-50W)</div>
+                <div class="row"><label>Электромагнитная блокировка + блокировочная штанга:</label><input type="number" class="qty-input" id="blockingQty" min="0" value="0" step="1"> шт. (DSN-A + 03-F)</div>
+                <div id="fuseRow" class="row hidden"><label>Предохранитель XRNT-12:</label><select id="fuseType"><option value="none">Нет</option><option value="6">6A</option><option value="10">10A</option><option value="16">16A</option><option value="20">20A</option><option value="25">25A</option><option value="32">32A</option><option value="40">40A</option><option value="50">50A</option><option value="63">63A</option><option value="80">80A</option><option value="100">100A</option></select><input type="number" class="qty-input" id="fuseQty" min="0" value="0" step="1"> шт.</div>
+                <div class="row"><label>Микропроцессорная защита:</label><select id="protection"><option value="none">Нет</option><option value="NR-310">NR-310</option><option value="NR321">NR-321</option><option value="custom">Пользовательская</option></select><input type="number" class="qty-input" id="protectionQty" min="0" value="1" step="1"> шт.</div>
+                <div class="section-title">Дополнительные аксессуары</div>
+                <div class="row"><label>Фазометр HX2-2(PC):</label><input type="checkbox" id="phasing" checked></div>
+                <div class="row"><label>Испытательные штанги 10кВ (комплект):</label><input type="checkbox" id="bushingCheck"></div>
+                <div class="section-title">Трансформаторы тока</div>
+                <div class="row"><label>Коэффициент трансформации:</label><select id="ctRatio"><option value="">-- выберите --</option></select></div>
+                <div class="row"><label>Модель ТТ:</label><select id="ctModel"><option value="">-- сначала выберите коэффициент --</option></select></div>
+                <div class="row"><label>Количество:</label><input type="number" class="qty-input" id="ctQty" min="0" value="0" step="1"> шт.</div>
+                <div class="section-title">Кабельные соединения</div>
+                <div class="row"><label>Т-образный кабельный адаптер (комплект):</label><select id="frontEuroType"><option value="none">Нет</option></select><input type="number" class="qty-input" id="frontEuroQty" min="0" value="0" step="1"> шт.</div>
+                <div class="row"><label>Кабельный адаптер для второго присоединения (комплект):</label><select id="rearEuroType"><option value="none">Нет</option></select><input type="number" class="qty-input" id="rearEuroQty" min="0" value="0" step="1"> шт.</div>
+                <div class="row"><label>Кабельная муфта (тип, комплект):</label><select id="heatShrinkType"><option value="none">Нет</option><option value="50">50 мм</option><option value="120">120 мм</option><option value="240">240 мм</option><option value="300-400">300-400 мм</option></select><input type="number" class="qty-input" id="heatShrinkQty" min="0" value="0" step="1"> шт.</div>
+                <div class="row"><label>ОПН BLQ-17/50kV (комплект):</label><input type="number" class="qty-input" id="opn" min="0" value="0" step="1"> шт.</div>
+                <div class="section-title">Стоимость меди</div>
+                <div class="row"><label>Текущая цена меди (юань/т):</label><input type="number" id="copperPrice" value="78000" min="50000" step="1000" style="width:150px;"></div>
+            </div>
+            <div class="result">
+                <div class="result-title">Итоговая стоимость</div>
+                <div class="price-tag" id="totalPrice">0</div>
+                <div class="price-note">юань (включая 15% управленческих расходов)</div>
+                <div class="price-tag secondary" id="totalPriceRub">0</div>
+                <div class="price-note">руб. (по тарифу с НДС, коэффициент 69)</div>
+                <div class="breakdown" id="breakdown"></div>
+            </div>
+            <div style="margin: 0 30px 20px; font-size:0.8rem; color:#777;">
+                * Все выключатели 3-позиционные. Рукоятка R-SF6 включена (1 шт.). Корпус толщиной 2.0 мм. Приводы настраиваются индивидуально для каждой функции. Катушка отключения MX-DC24V добавлена автоматически для каждой функции V.
+            </div>
         </div>
     </div>
 
@@ -158,19 +217,21 @@
     </footer>
 
     <script>
-        // ==================== ЗАГРУЗКА ДАННЫХ ИЗ JSON ====================
+        // ==================== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ====================
         let transformerPrices = null;
         let vacuumProducts = [];
         let kruePrices = null;
 
+        // ==================== ЗАГРУЗКА JSON ====================
         async function loadAllData() {
+            const errorDiv = document.getElementById('loadError');
             try {
                 const [tResp, vResp, kResp] = await Promise.all([
                     fetch('prices_transformer.json'),
                     fetch('prices_vacuum.json'),
                     fetch('prices_krue.json')
                 ]);
-                if (!tResp.ok || !vResp.ok || !kResp.ok) throw new Error('Ошибка загрузки одного из файлов цен');
+                if (!tResp.ok || !vResp.ok || !kResp.ok) throw new Error('Один из JSON-файлов не загрузился');
                 transformerPrices = await tResp.json();
                 vacuumProducts = await vResp.json();
                 kruePrices = await kResp.json();
@@ -180,13 +241,16 @@
                 initKRUE();
 
                 document.getElementById('tabTransformer').click();
+                updateCoolingDesc();
+                errorDiv.classList.add('hidden');
             } catch (error) {
-                alert('Не удалось загрузить цены. Пожалуйста, проверьте наличие JSON-файлов на сервере.');
+                errorDiv.classList.remove('hidden');
+                errorDiv.textContent = 'Не удалось загрузить цены. Проверьте JSON-файлы.';
                 console.error(error);
             }
         }
 
-        // Переключение вкладок
+        // ==================== ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК ====================
         const tabTransformer = document.getElementById('tabTransformer');
         const tabVacuum = document.getElementById('tabVacuum');
         const tabKRUE = document.getElementById('tabKRUE');
@@ -205,7 +269,10 @@
             if (panelId === 'transformer') {
                 panelTransformer.classList.add('active');
                 tabTransformer.classList.add('active');
-                if (typeof populatePowersTransformer === 'function') populatePowersTransformer();
+                if (typeof populatePowersTransformer === 'function') {
+                    populatePowersTransformer();
+                    updateCoolingDesc();
+                }
             } else if (panelId === 'vacuum') {
                 panelVacuum.classList.add('active');
                 tabVacuum.classList.add('active');
@@ -224,7 +291,10 @@
         // ==================== ИНИЦИАЛИЗАЦИЯ ТРАНСФОРМАТОРОВ ====================
         function initTransformer() {
             if (!transformerPrices) return;
-            document.getElementById('seriesTransformer').addEventListener('change', populatePowersTransformer);
+            document.getElementById('seriesTransformer').addEventListener('change', () => {
+                populatePowersTransformer();
+                updateCoolingDesc();
+            });
             document.getElementById('powerTransformer').addEventListener('change', calculateTransformer);
             document.getElementById('vibroTransformer').addEventListener('change', calculateTransformer);
             document.getElementById('enclosureTransformer').addEventListener('change', calculateTransformer);
@@ -232,7 +302,20 @@
             document.getElementById('quantityTransformer').addEventListener('input', calculateTransformer);
         }
 
+        function updateCoolingDesc() {
+            const series = document.getElementById('seriesTransformer').value;
+            const descEl = document.getElementById('coolingDesc');
+            if (descEl) {
+                if (series === 'SCB10_6_10_AN') {
+                    descEl.textContent = 'естественное (AN)';
+                } else {
+                    descEl.textContent = 'принудительное (ANAF)';
+                }
+            }
+        }
+
         function populatePowersTransformer() {
+            if (!transformerPrices) return;
             const s = document.getElementById('seriesTransformer').value;
             const powers = Object.keys(transformerPrices.basePrices[s] || {}).map(Number);
             if (powers.includes(3200) && !powers.includes(3150)) powers.push(3150);
@@ -261,7 +344,8 @@
         }
 
         function updateZincVisibilityTransformer() {
-            document.getElementById('zincRowTransformer').classList.toggle('hidden', document.getElementById('seriesTransformer').value !== 'SCB10_6_10' && document.getElementById('seriesTransformer').value !== 'SCB10_6_10_AN');
+            const series = document.getElementById('seriesTransformer').value;
+            document.getElementById('zincRowTransformer').classList.toggle('hidden', series !== 'SCB10_6_10' && series !== 'SCB10_6_10_AN');
             document.getElementById('zincTransformer').checked = false;
         }
 
@@ -282,6 +366,7 @@
         }
 
         function calculateTransformer() {
+            if (!transformerPrices) return;
             const series = document.getElementById('seriesTransformer').value;
             const power = parseInt(document.getElementById('powerTransformer').value, 10);
             const vibro = document.getElementById('vibroTransformer').checked;
@@ -303,9 +388,462 @@
             document.getElementById('breakdownTransformer').innerHTML = breakdown;
         }
 
-        // Остальные секции (вакуум, КРУЭ) идентичны последней полной версии (2026-06-16).
-        // Для краткости здесь опущены, но в реальном файле они присутствуют.
+        // ==================== ИНИЦИАЛИЗАЦИЯ ВАКУУМНЫХ ВЫКЛЮЧАТЕЛЕЙ ====================
+        function initVacuum() {
+            if (!vacuumProducts.length) return;
+            document.getElementById('insulationVacuum').addEventListener('change', filterAndUpdateVacuum);
+            document.getElementById('typeVacuum').addEventListener('change', filterAndUpdateVacuum);
+            document.getElementById('currentVacuum').addEventListener('change', updateBreakingAndDistanceVacuum);
+            document.getElementById('breakingVacuum').addEventListener('change', updateDistanceAndCalculateVacuum);
+            document.getElementById('distanceVacuum').addEventListener('change', calculateVacuum);
+            document.getElementById('quantityVacuum').addEventListener('input', calculateVacuum);
+        }
 
+        function filterAndUpdateVacuum() {
+            const ins = document.getElementById('insulationVacuum').value;
+            const typ = document.getElementById('typeVacuum').value;
+            const currents = [...new Set(vacuumProducts.filter(p => p.insulation === ins && p.type === typ).map(p => p.current))].sort((a,b) => a-b);
+            const currentSel = document.getElementById('currentVacuum');
+            const prevCur = currentSel.value;
+            currentSel.innerHTML = '';
+            currents.forEach(cur => { const o = document.createElement('option'); o.value = cur; o.textContent = cur + ' А'; currentSel.appendChild(o); });
+            if (currents.length) currentSel.value = currents.includes(parseInt(prevCur)) ? prevCur : currents[0];
+            updateBreakingAndDistanceVacuum();
+        }
+
+        function updateBreakingAndDistanceVacuum() {
+            const ins = document.getElementById('insulationVacuum').value;
+            const typ = document.getElementById('typeVacuum').value;
+            const cur = parseInt(document.getElementById('currentVacuum').value, 10);
+            const breakings = [...new Set(vacuumProducts.filter(p => p.insulation === ins && p.type === typ && p.current === cur).map(p => p.breaking))].sort((a,b) => a-b);
+            const breakingSel = document.getElementById('breakingVacuum');
+            const prevBr = breakingSel.value;
+            breakingSel.innerHTML = '';
+            breakings.forEach(brk => { const o = document.createElement('option'); o.value = brk; o.textContent = brk + ' кА'; breakingSel.appendChild(o); });
+            if (breakings.length) breakingSel.value = breakings.includes(parseFloat(prevBr)) ? prevBr : breakings[0];
+            updateDistanceAndCalculateVacuum();
+        }
+
+        function updateDistanceAndCalculateVacuum() {
+            const ins = document.getElementById('insulationVacuum').value;
+            const typ = document.getElementById('typeVacuum').value;
+            const cur = parseInt(document.getElementById('currentVacuum').value, 10);
+            const brk = parseFloat(document.getElementById('breakingVacuum').value);
+            const distances = [...new Set(vacuumProducts.filter(p => p.insulation === ins && p.type === typ && p.current === cur && p.breaking === brk).map(p => p.phaseDistance))].sort((a,b) => a-b);
+            const distanceSel = document.getElementById('distanceVacuum');
+            const prevDist = distanceSel.value;
+            distanceSel.innerHTML = '';
+            distances.forEach(dist => { const o = document.createElement('option'); o.value = dist; o.textContent = dist + ' мм'; distanceSel.appendChild(o); });
+            if (distances.length) distanceSel.value = distances.includes(parseInt(prevDist)) ? prevDist : distances[0];
+            calculateVacuum();
+        }
+
+        function calculateVacuum() {
+            const ins = document.getElementById('insulationVacuum').value;
+            const typ = document.getElementById('typeVacuum').value;
+            const cur = parseInt(document.getElementById('currentVacuum').value, 10);
+            const brk = parseFloat(document.getElementById('breakingVacuum').value);
+            const dist = parseInt(document.getElementById('distanceVacuum').value, 10);
+            const qty = parseInt(document.getElementById('quantityVacuum').value, 10) || 1;
+            const product = vacuumProducts.find(p => p.insulation === ins && p.type === typ && p.current === cur && p.breaking === brk && p.phaseDistance === dist);
+            const modelEl = document.getElementById('modelNameVacuum');
+            const unitEl = document.getElementById('unitPriceVacuum');
+            const totalEl = document.getElementById('totalAmountVacuum');
+            const msgEl = document.getElementById('warningMsgVacuum');
+            if (!product) {
+                modelEl.textContent = '—';
+                unitEl.textContent = '0';
+                totalEl.textContent = '0';
+                msgEl.innerHTML = '<div style="color:#b45309;">Внимание: данное сочетание параметров отсутствует в прайс-листе.</div>';
+                return;
+            }
+            modelEl.textContent = product.fullName;
+            const unit = product.price;
+            unitEl.textContent = unit.toLocaleString('ru-RU');
+            totalEl.textContent = (unit * qty).toLocaleString('ru-RU');
+            msgEl.innerHTML = '';
+        }
+
+        // ==================== ИНИЦИАЛИЗАЦИЯ КРУЭ ====================
+        const cabinetDB = [
+            { id:"C(325)", C:1, V:0, F:0, size:325, price20:2422, lvBlock:206, panel:172, expansions: null, copper:{C:498, V:0, F:0} },
+            { id:"V(325)", C:0, V:1, F:0, size:325, price20:2422, lvBlock:206, panel:172, expansions: [{type:"left", price:420}], copper:{C:0, V:306, F:0} },
+            { id:"F(325)", C:0, V:0, F:1, size:325, price20:2662, lvBlock:206, panel:172, expansions: [{type:"right", price:420}], copper:{C:0, V:0, F:300} },
+            { id:"CC(650)", C:2, V:0, F:0, size:650, price20:3692, lvBlock:324, panel:286, expansions: [{type:"both", price:840}], copper:{C:379, V:0, F:0} },
+            { id:"CV(650)", C:1, V:1, F:0, size:650, price20:3692, lvBlock:324, panel:286, expansions: null, copper:{C:379, V:227, F:0} },
+            { id:"CF(650)", C:1, V:0, F:1, size:650, price20:3932, lvBlock:324, panel:286, expansions: null, copper:{C:379, V:0, F:223} },
+            { id:"CCC(975)", C:3, V:0, F:0, size:975, price20:4962, lvBlock:447, panel:402, expansions: null, copper:{C:568, V:0, F:0} },
+            { id:"CCV(975)", C:2, V:1, F:0, size:975, price20:4962, lvBlock:447, panel:402, expansions: null, copper:{C:568, V:341, F:0} },
+            { id:"CVC(975)", C:2, V:1, F:0, size:975, price20:4962, lvBlock:447, panel:402, expansions: null, copper:{C:568, V:341, F:0} },
+            { id:"CVV(975)", C:1, V:2, F:0, size:975, price20:4962, lvBlock:447, panel:402, expansions: null, copper:{C:568, V:341, F:0} },
+            { id:"VVV(975)", C:0, V:3, F:0, size:975, price20:4962, lvBlock:447, panel:402, expansions: null, copper:{C:0, V:341, F:0} },
+            { id:"CCF(975)", C:2, V:0, F:1, size:975, price20:5202, lvBlock:447, panel:402, expansions: null, copper:{C:568, V:0, F:335} },
+            { id:"CFF(975)", C:1, V:0, F:2, size:975, price20:5442, lvBlock:447, panel:402, expansions: null, copper:{C:568, V:0, F:335} },
+            { id:"CVF(975)", C:1, V:1, F:1, size:975, price20:5202, lvBlock:447, panel:402, expansions: null, copper:{C:568, V:341, F:335} },
+            { id:"CCCC(1300)", C:4, V:0, F:0, size:1300, price20:6340, lvBlock:600, panel:538, expansions: null, copper:{C:757, V:0, F:0} },
+            { id:"CCCV(1300)", C:3, V:1, F:0, size:1300, price20:6340, lvBlock:600, panel:538, expansions: null, copper:{C:568, V:455, F:0} },
+            { id:"CCVC(1300)", C:3, V:1, F:0, size:1300, price20:6340, lvBlock:600, panel:538, expansions: null, copper:{C:568, V:455, F:0} },
+            { id:"CCVV(1300)", C:2, V:2, F:0, size:1300, price20:6340, lvBlock:600, panel:538, expansions: null, copper:{C:568, V:455, F:0} },
+            { id:"CVCV(1300)", C:2, V:2, F:0, size:1300, price20:6340, lvBlock:600, panel:538, expansions: null, copper:{C:568, V:455, F:0} },
+            { id:"CVVV(1300)", C:1, V:3, F:0, size:1300, price20:6340, lvBlock:600, panel:538, expansions: null, copper:{C:568, V:455, F:0} },
+            { id:"VVVV(1300)", C:0, V:4, F:0, size:1300, price20:6340, lvBlock:600, panel:538, expansions: null, copper:{C:0, V:455, F:0} },
+            { id:"CCCF(1300)", C:3, V:0, F:1, size:1300, price20:6580, lvBlock:600, panel:538, expansions: null, copper:{C:568, V:0, F:447} },
+            { id:"CCFF(1300)", C:2, V:0, F:2, size:1300, price20:6820, lvBlock:600, panel:538, expansions: null, copper:{C:568, V:0, F:447} },
+            { id:"CFFF(1300)", C:1, V:0, F:3, size:1300, price20:7060, lvBlock:600, panel:538, expansions: null, copper:{C:568, V:0, F:447} },
+            { id:"CCVF(1300)", C:2, V:1, F:1, size:1300, price20:6580, lvBlock:600, panel:538, expansions: null, copper:{C:568, V:455, F:447} },
+            { id:"CVCF(1300)", C:2, V:1, F:1, size:1300, price20:6580, lvBlock:600, panel:538, expansions: null, copper:{C:568, V:455, F:447} },
+            { id:"CCCCC(1625)", C:5, V:0, F:0, size:1625, price20:7670, lvBlock:718, panel:654, expansions: null, copper:{C:947, V:0, F:0} },
+            { id:"CCCCV(1625)", C:4, V:1, F:0, size:1625, price20:7670, lvBlock:718, panel:654, expansions: null, copper:{C:757, V:568, F:0} },
+            { id:"CCCVV(1625)", C:3, V:2, F:0, size:1625, price20:7670, lvBlock:718, panel:654, expansions: null, copper:{C:568, V:568, F:0} },
+            { id:"CCVVV(1625)", C:2, V:3, F:0, size:1625, price20:7670, lvBlock:718, panel:654, expansions: null, copper:{C:568, V:568, F:0} },
+            { id:"CVVVV(1625)", C:1, V:4, F:0, size:1625, price20:7670, lvBlock:718, panel:654, expansions: null, copper:{C:568, V:568, F:0} },
+            { id:"VVVVV(1625)", C:0, V:5, F:0, size:1625, price20:7670, lvBlock:718, panel:654, expansions: null, copper:{C:0, V:568, F:0} },
+            { id:"CVCVC(1625)", C:3, V:2, F:0, size:1625, price20:7670, lvBlock:718, panel:654, expansions: null, copper:{C:568, V:568, F:0} }
+        ];
+
+        const configSelect = document.getElementById('configSelect');
+        cabinetDB.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.id;
+            const nameOnly = c.id.replace(/\(\d+\)$/, '');
+            opt.textContent = `${nameOnly} (C:${c.C}, V:${c.V}, F:${c.F}, ширина ${c.size} мм)`;
+            configSelect.appendChild(opt);
+        });
+
+        const ctDatabase = [
+            { ratio:"80/5", full:"LMZC-10 80/5 0.5 2.5VA", price:155 },
+            { ratio:"75/5", full:"LMZC-10 75/5 0.5S 2.5VA", price:189 },
+            { ratio:"100/5", full:"LMZC-10 100/5 0.5S 2.5VA", price:155 },
+            { ratio:"150/5", full:"LMZC-10 150/5 0.5S 2.5VA", price:155 },
+            { ratio:"300/5", full:"LMZC-10 300/5 0.5S 2.5VA", price:155 },
+            { ratio:"60/5", full:"LMZC-10 60/5 10P10 2.5VA", price:189 },
+            { ratio:"100/5", full:"LMZC-10 100/5 10P10 2.5VA", price:189 },
+            { ratio:"50/5", full:"LMZC-10 50/5 0.5/10P10 2.5VA", price:189 },
+            { ratio:"75/5", full:"LMZC-10 75/5 0.5/10P10 2.5VA", price:189 },
+            { ratio:"100/5", full:"LMZC-10 100/5 0.5/10P15 2.5VA", price:189 },
+            { ratio:"150/5", full:"LMZC-10 150/5 0.5/10P15 2.5VA", price:189 },
+            { ratio:"200/5", full:"LMZC-10 200/5 0.5/10P15 2.5VA", price:189 },
+            { ratio:"600/5", full:"LMZC-10 600/5 0.5/10P15 2.5VA", price:178 },
+            { ratio:"300/5", full:"LMZC-10 300/5 0.5S/10P10 2.5VA", price:178 },
+            { ratio:"600/5", full:"LMZC-10 600/5 0.5S/10P10 2.5VA", price:178 },
+            { ratio:"1000/5", full:"LMZC-10 1000/5 0.5S/10P10 2.5VA", price:222 },
+            { ratio:"100/5", full:"LMZC-10 100/5 DY/10P10 5/2.5VA", price:244 },
+            { ratio:"300/5", full:"LMZC-10 300/5 DY/10P10 5/2.5VA", price:244 },
+            { ratio:"300/5", full:"LMZC-10 300/5 10P10/10P10 2.5VA", price:200 },
+            { ratio:"400/5", full:"LMZC-10 400/5 0.5/10P20 2.5VA", price:200 },
+            { ratio:"800/5", full:"LMZC-10 800/5 0.5/10P20 2.5VA", price:200 },
+            { ratio:"75/5", full:"LMZC-10 75/5 10P10 30/5 0.5S 2.5VA", price:211 },
+            { ratio:"300/5", full:"LMZC-10 300/5 10P10 150/5 0.5S 2.5VA", price:178 },
+            { ratio:"300/5", full:"LMZC-10 300/5 10P10 200/5 0.5S 2.5VA", price:178 },
+            { ratio:"200-400-600/5", full:"LMZC-10 200-400-600/5 0.2S 2.5VA", price:200 },
+            { ratio:"100/5", full:"LMZC-10 100/5 0.5 2.5VA", price:122 },
+            { ratio:"150/5", full:"LMZC-10 150/5 0.5 2.5VA", price:122 },
+            { ratio:"100/5", full:"LMZC-10 100/5 0.5 5VA", price:178 },
+            { ratio:"150/5", full:"LMZC-10 150/5 0.5 5VA", price:178 },
+            { ratio:"200/5", full:"LMZC-10 200/5 0.5 5VA", price:111 },
+            { ratio:"250/5", full:"LMZC-10 250/5 0.5 5VA", price:111 },
+            { ratio:"300/5", full:"LMZC-10 300/5 0.5 5VA", price:111 },
+            { ratio:"500/5", full:"LMZC-10 500/5 0.5 5VA", price:111 },
+            { ratio:"600/5", full:"LMZC-10 600/5 0.5 5VA", price:111 },
+            { ratio:"150/5", full:"LMZC-10 150/5 0.5/10P10 5/5VA", price:178 },
+            { ratio:"200/5", full:"LMZC-10 200/5 0.5/10P10 5/5VA", price:178 },
+            { ratio:"250/5", full:"LMZC-10 250/5 0.5/10P10 5/5VA", price:178 },
+            { ratio:"300/5", full:"LMZC-10 300/5 0.5/10P10 5/5VA", price:178 },
+            { ratio:"500/5", full:"LMZC-10 500/5 0.5/10P10 5/5VA", price:178 },
+            { ratio:"600/5", full:"LMZC-10 600/5 0.5/10P10 5/5VA", price:178 },
+            { ratio:"150/5", full:"LMZC-10 150/5 0.5S 5VA", price:155 },
+            { ratio:"200/5", full:"LMZC-10 200/5 0.5S 5VA", price:155 },
+            { ratio:"250/5", full:"LMZC-10 250/5 0.5S 5VA", price:155 },
+            { ratio:"300/5", full:"LMZC-10 300/5 0.5S 5VA", price:155 },
+            { ratio:"500/5", full:"LMZC-10 500/5 0.5S 5VA", price:155 },
+            { ratio:"600/5", full:"LMZC-10 600/5 0.5S 5VA", price:155 },
+            { ratio:"150/5", full:"LMZC-10 150/5 0.5S/10P10 5/5VA", price:189 },
+            { ratio:"200/5", full:"LMZC-10 200/5 0.5S/10P10 5/5VA", price:189 },
+            { ratio:"250/5", full:"LMZC-10 250/5 0.5S/10P10 5/5VA", price:189 },
+            { ratio:"300/5", full:"LMZC-10 300/5 0.5S/10P10 5/5VA", price:189 },
+            { ratio:"500/5", full:"LMZC-10 500/5 0.5S/10P10 5/5VA", price:189 },
+            { ratio:"600/5", full:"LMZC-10 600/5 0.5S/10P10 5/5VA", price:189 },
+            { ratio:"150/5", full:"LMZC-10 150/5 0.2S 5VA", price:178 },
+            { ratio:"200/5", full:"LMZC-10 200/5 0.2S 5VA", price:178 },
+            { ratio:"250/5", full:"LMZC-10 250/5 0.2S 5VA", price:178 },
+            { ratio:"300/5", full:"LMZC-10 300/5 0.2S 5VA", price:178 },
+            { ratio:"500/5", full:"LMZC-10 500/5 0.2S 5VA", price:178 },
+            { ratio:"600/5", full:"LMZC-10 600/5 0.2S 5VA", price:178 },
+            { ratio:"150/5", full:"LMZC-10 150/5 0.2S/10P10 5/5VA", price:200 },
+            { ratio:"200/5", full:"LMZC-10 200/5 0.2S/10P10 5/5VA", price:200 },
+            { ratio:"250/5", full:"LMZC-10 250/5 0.2S/10P10 5/5VA", price:200 },
+            { ratio:"300/5", full:"LMZC-10 300/5 0.2S/10P10 5/5VA", price:200 },
+            { ratio:"500/5", full:"LMZC-10 500/5 0.2S/10P10 5/5VA", price:200 },
+            { ratio:"600/5", full:"LMZC-10 600/5 0.2S/10P10 5/5VA", price:200 },
+            { ratio:"150/5", full:"LMZC-10 150/5 0.5/10P10 2.5/2.5VA", price:189 },
+            { ratio:"100/5", full:"LMZC-10 100/5 0.5/10P10/DY 2.5/5/2.5VA", price:189 },
+            { ratio:"200/5", full:"LMZC-10 200/5 0.5/10P10/DY 2.5/2.5/5VA", price:300 },
+            { ratio:"300/5", full:"LMZC-10 300/5 0.5/10P10/DY 2.5/2.5/5VA", price:300 },
+            { ratio:"100/5", full:"LMZC-10 100/5 0.5/10P10/DY 2.5/2.5/5VA", price:336 }
+        ];
+
+        const ctRatioSelect = document.getElementById('ctRatio');
+        const allRatios = [...new Set(ctDatabase.map(item => item.ratio))].sort();
+        allRatios.forEach(r => { const opt = document.createElement('option'); opt.value = r; opt.textContent = r; ctRatioSelect.appendChild(opt); });
+
+        function updateCTModels() {
+            const ratio = ctRatioSelect.value;
+            const ctModelSelect = document.getElementById('ctModel');
+            ctModelSelect.innerHTML = '<option value="">-- выберите модель --</option>';
+            if (!ratio) return;
+            const models = ctDatabase.filter(item => item.ratio === ratio);
+            models.forEach(m => { const opt = document.createElement('option'); opt.value = m.price; opt.textContent = m.full; opt.dataset.price = m.price; ctModelSelect.appendChild(opt); });
+        }
+        ctRatioSelect.addEventListener('change', updateCTModels);
+
+        const adapterPrices = {
+            front: { "35":323.87,"50":323.87,"70":323.87,"95":323.87,"120":323.87,"150":323.87,"185":323.87,"240":323.87,"300":336.00,"400":336.00 },
+            rear: { "35":323.87,"50":323.87,"70":323.87,"95":323.87,"120":323.87,"150":323.87,"185":323.87,"240":323.87,"300":336.00,"400":336.00 }
+        };
+        const frontEuroType = document.getElementById('frontEuroType');
+        const rearEuroType = document.getElementById('rearEuroType');
+        const sections = ["35","50","70","95","120","150","185","240","300","400"];
+        sections.forEach(sec => { frontEuroType.appendChild(new Option(sec + ' мм²', sec)); rearEuroType.appendChild(new Option(sec + ' мм²', sec)); });
+
+        const drivePrices = {
+            C_manual: 550, C_motor: 1730,
+            V_manual_elec_off: 1900, V_motor: 2310,
+            F_manual: 770, F_motor: 2040
+        };
+        const laborPrices = {
+            C: { manual: 770, motor: 990 },
+            V: { manual_elec_off: 1265, motor: 1265 },
+            F: { manual: 935, motor: 1155 }
+        };
+        const accessory = {
+            indicQ: 31.14,
+            manometer_basic: 231, manometer_2NO: 256.41,
+            utkz: 96.46,
+            controllerHeater: 95.24,
+            mxCoil: 42.74,
+            phasing: 57.39,
+            blocking: 106.70,
+            handle: 61.05,
+            testOutlet: 773.52,
+            bushing: 286,
+            fuse: { "6":72,"10":72,"16":72,"20":72,"25":72,"32":72,"40":72,"50":100,"63":100,"80":100,"100":100 },
+            protection: { "NR-310":380, "NR321":1300, "custom":0 },
+            heatShrink: { "50":144.10, "120":184.80, "240":255.20, "300-400":371.80 },
+            opn: 284,
+            consumables: 389,
+            packaging: 190
+        };
+        const BASE_COPPER = 65000;
+        const busbarPrice = { horiz: 231.21, earth: 173.40 };
+        const TARIFF_COEFFICIENT = 69;
+
+        function getSelectedConfig() { return cabinetDB.find(c => c.id === configSelect.value); }
+
+        function renderDrives() {
+            const cfg = getSelectedConfig();
+            const container = document.getElementById('drivesContainer');
+            container.innerHTML = '';
+            if (cfg.C + cfg.V + cfg.F === 0) return;
+
+            for (let i = 0; i < cfg.C; i++) {
+                const div = document.createElement('div'); div.className = 'row';
+                div.innerHTML = `<label>Функция C #${i+1} — привод:</label><select class="driveSelect" data-block="C" data-index="${i}"><option value="manual">Ручной</option><option value="motor">Моторный</option></select>`;
+                container.appendChild(div);
+            }
+            for (let i = 0; i < cfg.V; i++) {
+                const div = document.createElement('div'); div.className = 'row';
+                div.innerHTML = `<label>Функция V #${i+1} — привод:</label><select class="driveSelect" data-block="V" data-index="${i}"><option value="manual_elec_off">Руч. вкл./мотор. откл.</option><option value="motor">Моторный</option></select>`;
+                container.appendChild(div);
+            }
+            for (let i = 0; i < cfg.F; i++) {
+                const div = document.createElement('div'); div.className = 'row';
+                div.innerHTML = `<label>Функция F #${i+1} — привод:</label><select class="driveSelect" data-block="F" data-index="${i}"><option value="manual">Ручной</option><option value="motor">Моторный</option></select>`;
+                container.appendChild(div);
+            }
+
+            const testOutletRow = document.getElementById('testOutletRow');
+            const testOutletInput = document.getElementById('testOutletQty');
+            testOutletRow.classList.toggle('hidden', cfg.C === 0);
+            if (cfg.C > 0) {
+                testOutletInput.max = cfg.C;
+                testOutletInput.value = Math.min(testOutletInput.value || 0, cfg.C);
+            } else { testOutletInput.value = 0; }
+
+            document.getElementById('fuseRow').classList.toggle('hidden', cfg.F === 0);
+
+            document.querySelectorAll('.driveSelect').forEach(sel => sel.addEventListener('change', calculateKRUE));
+        }
+
+        function updateBlockVisibility() {
+            const cfg = getSelectedConfig();
+            const total = cfg.C + cfg.V + cfg.F;
+            document.getElementById('blockSettings').classList.toggle('hidden', total === 0);
+            renderDrives();
+            calculateKRUE();
+        }
+
+        function calculateKRUE() {
+            const cfg = getSelectedConfig();
+            const expansionType = document.getElementById('expansion').value;
+            let expansionPrice = 0;
+            if (expansionType === 'left' || expansionType === 'right') expansionPrice = 420;
+            else if (expansionType === 'both') expansionPrice = 840;
+
+            const copperPrice = parseFloat(document.getElementById('copperPrice').value) || 78000;
+            const copperFactor = copperPrice / BASE_COPPER;
+
+            let total = 0;
+            const lines = [];
+
+            total += cfg.price20;
+            lines.push(`Корпус ${cfg.id} (2.0 мм): ${cfg.price20}`);
+            total += cfg.lvBlock + cfg.panel;
+            lines.push(`Низковольтный отсек: ${cfg.lvBlock}, Панель: ${cfg.panel}`);
+
+            if (expansionPrice > 0) {
+                total += expansionPrice;
+                const expLabel = expansionType === 'left' ? 'Левое' : expansionType === 'right' ? 'Правое' : 'Двустороннее';
+                lines.push(`Расширение (${expLabel}): ${expansionPrice}`);
+            }
+
+            const drives = document.querySelectorAll('.driveSelect');
+            drives.forEach(sel => {
+                const block = sel.dataset.block;
+                const driveType = sel.value;
+                const driveKey = `${block}_${driveType}`;
+                const drivePrice = drivePrices[driveKey] || 0;
+                const labor = laborPrices[block][driveType] || 0;
+                total += drivePrice + labor;
+                lines.push(`${block} привод (${driveType}): ${drivePrice} + ${labor} (труд) = ${drivePrice + labor}`);
+            });
+
+            const switchPriceC = 816, switchPriceV = 3240, switchPriceF = 3240;
+            const switchTotal = cfg.C * switchPriceC + cfg.V * switchPriceV + cfg.F * switchPriceF;
+            total += switchTotal;
+            lines.push(`Выключатели (3-поз.) C:${cfg.C}×${switchPriceC}, V:${cfg.V}×${switchPriceV}, F:${cfg.F}×${switchPriceF} = ${switchTotal}`);
+
+            if (cfg.V > 0) {
+                const mxCoilTotal = cfg.V * accessory.mxCoil;
+                total += mxCoilTotal;
+                lines.push(`Катушка отключения MX-DC24V (V): ${accessory.mxCoil} × ${cfg.V} = ${mxCoilTotal}`);
+            }
+
+            if (cfg.copper.C && cfg.C > 0) {
+                const cost = Math.round(cfg.copper.C * copperFactor);
+                total += cost * cfg.C;
+                lines.push(`Медь (материал) C: ${cost} × ${cfg.C} = ${cost * cfg.C}`);
+            }
+            if (cfg.copper.V && cfg.V > 0) {
+                const cost = Math.round(cfg.copper.V * copperFactor);
+                total += cost * cfg.V;
+                lines.push(`Медь (материал) V: ${cost} × ${cfg.V} = ${cost * cfg.V}`);
+            }
+            if (cfg.copper.F && cfg.F > 0) {
+                const cost = Math.round(cfg.copper.F * copperFactor);
+                total += cost * cfg.F;
+                lines.push(`Медь (материал) F: ${cost} × ${cfg.F} = ${cost * cfg.F}`);
+            }
+
+            const totalModules = cfg.C + cfg.V + cfg.F;
+            const horizLength = (cfg.size / 325) * 1.2;
+            const earthLength = (cfg.size / 325) * 0.97;
+            const horizCost = busbarPrice.horiz * horizLength;
+            const earthCost = busbarPrice.earth * earthLength;
+            total += horizCost + earthCost;
+            lines.push(`Горизонтальная шина (${horizLength.toFixed(1)}м): ${horizCost.toFixed(2)}`);
+            lines.push(`Шина заземления (${earthLength.toFixed(1)}м): ${earthCost.toFixed(2)}`);
+
+            const testOutletQty = Math.min(parseInt(document.getElementById('testOutletQty').value) || 0, cfg.C);
+            if (testOutletQty > 0) {
+                total += testOutletQty * accessory.testOutlet;
+                lines.push(`Отсек испытания кабеля: ${accessory.testOutlet} × ${testOutletQty} = ${testOutletQty * accessory.testOutlet}`);
+            }
+
+            const vGround = 46.24;
+            if (cfg.V > 0) { total += vGround * cfg.V; lines.push(`Заземление V: ${vGround} × ${cfg.V} = ${vGround * cfg.V}`); }
+
+            const indicQ = parseInt(document.getElementById('indicQ').value) || 0;
+            const manometer = document.getElementById('manometer').value;
+            const utkzQty = parseInt(document.getElementById('utkzQty').value) || 0;
+            const controllerHeaterQty = parseInt(document.getElementById('controllerHeaterQty').value) || 0;
+            const phasing = document.getElementById('phasing').checked;
+            const blockingQty = parseInt(document.getElementById('blockingQty').value) || 0;
+            const fuseType = document.getElementById('fuseType').value;
+            const fuseQty = parseInt(document.getElementById('fuseQty').value) || 0;
+            const protection = document.getElementById('protection').value;
+            const protectionQty = parseInt(document.getElementById('protectionQty').value) || 0;
+            const ctModel = document.getElementById('ctModel');
+            const ctPrice = ctModel.options[ctModel.selectedIndex]?.dataset.price ? parseFloat(ctModel.options[ctModel.selectedIndex].dataset.price) : 0;
+            const ctQty = parseInt(document.getElementById('ctQty').value) || 0;
+            const bushingChecked = document.getElementById('bushingCheck').checked;
+
+            const frontType = document.getElementById('frontEuroType').value;
+            const frontQty = parseInt(document.getElementById('frontEuroQty').value) || 0;
+            const rearType = document.getElementById('rearEuroType').value;
+            const rearQty = parseInt(document.getElementById('rearEuroQty').value) || 0;
+
+            const heatShrinkType = document.getElementById('heatShrinkType').value;
+            const heatShrinkQty = parseInt(document.getElementById('heatShrinkQty').value) || 0;
+            const opn = parseInt(document.getElementById('opn').value) || 0;
+
+            total += indicQ * accessory.indicQ;
+            if (manometer === 'basic') total += accessory.manometer_basic;
+            else if (manometer === '2NO') total += accessory.manometer_2NO;
+            total += utkzQty * accessory.utkz;
+            total += controllerHeaterQty * accessory.controllerHeater;
+            total += accessory.handle;
+            lines.push(`Рукоятка R-SF6 (1 шт.): ${accessory.handle}`);
+            if (phasing) total += accessory.phasing;
+            total += blockingQty * accessory.blocking;
+            if (cfg.F > 0 && fuseType !== 'none') total += accessory.fuse[fuseType] * fuseQty;
+            if (protection !== 'none') total += accessory.protection[protection] * protectionQty;
+            if (ctModel.value !== '') total += ctPrice * ctQty;
+            if (bushingChecked) { total += accessory.bushing; lines.push(`Испытательные штанги (комплект): ${accessory.bushing}`); }
+
+            if (frontType !== 'none' && frontQty > 0) {
+                const price = adapterPrices.front[frontType];
+                total += price * frontQty;
+                lines.push(`Т-образный адаптер ${frontType} мм²: ${price} × ${frontQty} = ${price * frontQty}`);
+            }
+            if (rearType !== 'none' && rearQty > 0) {
+                const price = adapterPrices.rear[rearType];
+                total += price * rearQty;
+                lines.push(`Адаптер второго присоединения ${rearType} мм²: ${price} × ${rearQty} = ${price * rearQty}`);
+            }
+
+            if (heatShrinkType !== 'none') total += accessory.heatShrink[heatShrinkType] * heatShrinkQty;
+            total += opn * accessory.opn;
+
+            const consumables = totalModules * accessory.consumables;
+            const packaging = totalModules * accessory.packaging;
+            total += consumables + packaging;
+            lines.push(`Расходные материалы: ${consumables}, Упаковка: ${packaging}`);
+
+            const management = total * 0.15;
+            total += management;
+
+            document.getElementById('totalPrice').textContent = total.toFixed(2);
+            document.getElementById('breakdown').innerHTML = lines.join('<br>') + `<br><strong>Управленческие расходы (15%): ${management.toFixed(2)}</strong>`;
+            document.getElementById('totalPriceRub').textContent = (total * TARIFF_COEFFICIENT).toLocaleString('ru-RU', {maximumFractionDigits: 2}) + ' руб.';
+        }
+
+        function initKRUE() {
+            document.getElementById('configSelect').addEventListener('change', () => { updateBlockVisibility(); calculateKRUE(); });
+            document.getElementById('expansion').addEventListener('change', calculateKRUE);
+            document.getElementById('copperPrice').addEventListener('input', calculateKRUE);
+            document.querySelectorAll('#panelKRUE input[type=number], #panelKRUE input[type=checkbox], #panelKRUE select').forEach(el => {
+                el.addEventListener('change', calculateKRUE);
+                if (el.type === 'number') el.addEventListener('input', calculateKRUE);
+            });
+            document.getElementById('testOutletQty').addEventListener('input', function() {
+                const cfg = getSelectedConfig();
+                let val = parseInt(this.value) || 0;
+                if (val > cfg.C) this.value = cfg.C;
+                calculateKRUE();
+            });
+        }
+
+        // Запуск загрузки данных
         loadAllData();
     </script>
 </body>
